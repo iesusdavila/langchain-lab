@@ -1,13 +1,15 @@
 import streamlit as st
 import os
+from dotenv import load_dotenv
 from langchain.prompts import PromptTemplate
 from langchain.output_parsers.structured import StructuredOutputParser, ResponseSchema
 from langchain_community.llms.llamacpp import LlamaCpp
 
-# Config LangChain
-os.environ["LANGCHAIN_TRACING_V2"] = "true"
-os.environ["LANGCHAIN_ENDPOINT"] = "https://api.smith.langchain.com"
-os.environ["LANGCHAIN_API_KEY"] = ""
+load_dotenv()
+
+os.environ["LANGCHAIN_TRACING_V2"] = os.getenv("LANGCHAIN_TRACING_V2", "true")
+os.environ["LANGCHAIN_ENDPOINT"] = os.getenv("LANGCHAIN_ENDPOINT", "https://api.smith.langchain.com")
+os.environ["LANGCHAIN_API_KEY"] = os.getenv("LANGCHAIN_API_KEY", "")
 
 st.title("Conocimiento de futbol")
 input_text = st.text_input("Ingresa el nombre de un jugador de futbol")

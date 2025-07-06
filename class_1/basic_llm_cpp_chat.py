@@ -4,6 +4,15 @@ from langchain_core.messages import HumanMessage, AIMessage, SystemMessage
 from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
 from langchain.memory import ConversationBufferWindowMemory
 import time
+from dotenv import load_dotenv
+import os
+
+load_dotenv()
+
+os.environ["LANGCHAIN_TRACING_V2"] = os.getenv("LANGCHAIN_TRACING_V2", "true")
+os.environ["LANGCHAIN_ENDPOINT"] = os.getenv("LANGCHAIN_ENDPOINT", "https://api.smith.langchain.com")
+os.environ["LANGCHAIN_API_KEY"] = os.getenv("LANGCHAIN_API_KEY", "")
+os.environ["LANGSMITH_PROJECT"] = os.getenv("LANGSMITH_PROJECT", "langchain-lab")
 
 st.set_page_config(
     page_title="Real-Time LLM Chat",
@@ -109,10 +118,10 @@ with col1:
             if hasattr(st.session_state.chat_model, 'client'):
                 client = st.session_state.chat_model.client
                 
-                n_ctx = client.n_ctx() if hasattr(client, 'n_ctx') else st.session_state.chat_model.n_ctx
+                n_ctx = client.n_ctx()
                 st.metric("Total Contexto", f"{n_ctx:,} tokens")
                                 
-                total_tokens = st.session_state.chat_model.client.n_tokens
+                total_tokens = client.n_tokens
                 st.metric("Used Tokens", f"{total_tokens:,}")
                 
                 if n_ctx > 0:

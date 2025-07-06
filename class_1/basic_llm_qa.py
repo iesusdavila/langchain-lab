@@ -5,7 +5,7 @@ st.title("LangChain con Streamlit y llama.cpp")
 input_text = st.text_input("Ingresa tu prompt:")
 
 llm = LlamaCpp(
-    model_path="models/models--ggml-org--Meta-Llama-3.1-8B-Instruct-Q4_0-GGUF/snapshots/0aba27dd2f1c7f4941a94a5c59d80e0a256f9ff8/meta-llama-3.1-8b-instruct-q4_0.gguf",        
+    model_path="models/models--MaziyarPanahi--Llama-3.2-1B-Instruct-GGUF/snapshots/b64ae94264258a3d7516a34a8c54928d32b19869/Llama-3.2-1B-Instruct.Q4_K_M.gguf",
     n_ctx=2048,
     verbose=True,
     n_gpu_layers=10,  
@@ -15,3 +15,5 @@ llm = LlamaCpp(
 if input_text:
     response = llm.invoke(input_text)
     st.write(response)  
+    print(dir(llm.client))
+    st.write(f"Porcentaje de contexto usado: {(llm.client.n_tokens / llm.client.n_ctx()) * 100:.2f}%")

@@ -17,11 +17,12 @@ app=FastAPI(
 )
 
 llm = LlamaCpp(
-    model_path="models/models--ggml-org--Meta-Llama-3.1-8B-Instruct-Q4_0-GGUF/snapshots/0aba27dd2f1c7f4941a94a5c59d80e0a256f9ff8/meta-llama-3.1-8b-instruct-q4_0.gguf",        
+    model_path="models/models--MaziyarPanahi--Llama-3.2-1B-Instruct-GGUF/snapshots/b64ae94264258a3d7516a34a8c54928d32b19869/Llama-3.2-1B-Instruct.Q4_K_M.gguf",
     n_ctx=2048,
     verbose=True,
     n_gpu_layers=20,  
-    n_threads=8
+    n_threads=8,
+    max_tokens=-1
 )
 
 prompt = ChatPromptTemplate.from_template("Escribe un resumen del siguiente tema: {topic}")

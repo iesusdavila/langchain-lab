@@ -24,7 +24,7 @@ api_wrapper = WikipediaAPIWrapper(top_k_results=1,doc_content_chars_max=200)
 wiki=WikipediaQueryRun(api_wrapper=api_wrapper)
 
 # Agent: WebBaseLoader
-loader = WebBaseLoader("https://docs.smith.langchain.com/")
+loader = WebBaseLoader("https://iesusdavila.vercel.app/cv")
 docs = loader.load()
 documents=RecursiveCharacterTextSplitter(chunk_size=1000,chunk_overlap=200).split_documents(docs)
 
@@ -39,8 +39,7 @@ llama = LlamaCppEmbeddings(
 vectordb = FAISS.from_documents(documents, llama)
 retriever = vectordb.as_retriever()
 
-retriever_tool=create_retriever_tool(retriever,"langsmith_search",
-                      "Search for information about LangSmith. For any questions about LangSmith, you must use this tool!")
+retriever_tool=create_retriever_tool(retriever, "web_search", "Busca información sobre el señor Davila")
 
 # Agent: Arvix
 arxiv_wrapper = ArxivAPIWrapper(top_k_results= 1, doc_content_chars_max=200)
@@ -51,7 +50,7 @@ tools = [wiki, retriever_tool, arxiv]
 
 # LLM for the agent
 model_llm = LlamaCpp(
-    model_path="models/models--ggml-org--Meta-Llama-3.1-8B-Instruct-Q4_0-GGUF/snapshots/0aba27dd2f1c7f4941a94a5c59d80e0a256f9ff8/meta-llama-3.1-8b-instruct-q4_0.gguf",        
+    model_path="models/Mistral-7B-Instruct-v0.3.IQ4_XS.gguf",
     n_ctx=2048,
     verbose=True,
     n_gpu_layers=20,  
@@ -66,6 +65,6 @@ agent = create_react_agent(model_llm, tools, prompt)
 
 agent_executor = AgentExecutor(agent=agent,tools=tools,verbose=True)
 
-agent_executor.invoke({"input":"Tell me about Langsmith"})
+agent_executor.invoke({"input":"El señor Davila estuvo alguna vez en Corea del Sur en la ciudad de Incheon?"})
 agent_executor.invoke({"input":"What's the paper 1605.08386 about?"})
 

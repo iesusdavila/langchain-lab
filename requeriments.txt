@@ -16,3 +16,4 @@ arxiv
 langchainhub
 groq
 langchain-groq
+google-search-results

@@ -23,40 +23,49 @@ if "vectors" not in st.session_state:
         model_kwargs={'device':'cuda'},
         encode_kwargs={'normalize_embeddings':True}
     )
+
+    faiss_path = "faiss_ros2_index"
     
-    ros2_urls = [
-        "https://docs.ros.org/en/humble",
-        "https://docs.ros.org/en/humble/Installation.html",
-        "https://docs.ros.org/en/humble/Releases.html",
-        "https://docs.ros.org/en/humble/Tutorials.html",
-        "https://docs.ros.org/en/humble/How-To-Guides.html",
-        "https://docs.ros.org/en/humble/Concepts.html",
-        "https://docs.ros.org/en/humble/Contact.html",
-        "https://docs.ros.org/en/humble/The-ROS2-Project.html",
-        "https://docs.ros.org/en/humble/Package-Docs.html",
-        "https://docs.ros.org/en/humble/Related-Projects.html",
-        "https://docs.ros.org/en/humble/Glossary.html",
-        "https://docs.ros.org/en/humble/Citations.html"
-    ]
-    
-    all_docs = []
-    with st.spinner("Cargando documentación de ROS2 Humble..."):
-        for url in ros2_urls:
-            try:
-                loader = WebBaseLoader(url)
-                docs = loader.load()
-                all_docs.extend(docs)
-                st.write(f"✅ Cargado: {url}")
-            except Exception as e:
-                st.write(f"❌ Error cargando {url}: {str(e)}")
-    
-    st.session_state.docs = all_docs
-    st.session_state.text_splitter=RecursiveCharacterTextSplitter(chunk_size=1000,chunk_overlap=200)
-    st.session_state.final_documents=st.session_state.text_splitter.split_documents(st.session_state.docs)
-    st.session_state.vectors=FAISS.from_documents(st.session_state.final_documents,st.session_state.embeddings)
+    if os.path.exists(f"{faiss_path}"):
+        st.info("Cargando FAISS desde disco...")
+        st.session_state.vectors = FAISS.load_local(folder_path=faiss_path, embeddings=st.session_state.embeddings, allow_dangerous_deserialization=True)
+        st.success("FAISS cargado!")
+    else:
+        ros2_urls = [
+            "https://docs.ros.org/en/humble",
+            "https://docs.ros.org/en/humble/Installation.html",
+            "https://docs.ros.org/en/humble/Releases.html",
+            "https://docs.ros.org/en/humble/Tutorials.html",
+            "https://docs.ros.org/en/humble/How-To-Guides.html",
+            "https://docs.ros.org/en/humble/Concepts.html",
+            "https://docs.ros.org/en/humble/Contact.html",
+            "https://docs.ros.org/en/humble/The-ROS2-Project.html",
+            "https://docs.ros.org/en/humble/Package-Docs.html",
+            "https://docs.ros.org/en/humble/Related-Projects.html",
+            "https://docs.ros.org/en/humble/Glossary.html",
+            "https://docs.ros.org/en/humble/Citations.html"
+        ]
+        
+        all_docs = []
+        with st.spinner("Cargando documentación de ROS2 Humble..."):
+            for url in ros2_urls:
+                try:
+                    loader = WebBaseLoader(url)
+                    docs = loader.load()
+                    all_docs.extend(docs)
+                    st.write(f"✅ Cargado: {url}")
+                except Exception as e:
+                    st.write(f"Error cargando {url}: {str(e)}")
+        
+        st.session_state.docs = all_docs
+        st.session_state.text_splitter=RecursiveCharacterTextSplitter(chunk_size=1000,chunk_overlap=200)
+        st.session_state.final_documents=st.session_state.text_splitter.split_documents(st.session_state.docs)
+        st.session_state.vectors=FAISS.from_documents(st.session_state.final_documents,st.session_state.embeddings)
+        st.session_state.vectors.save_local(faiss_path)
+        st.success("FAISS creado y guardado!")
 
 st.title("Asistente Virtual ROS2 Humble")
-st.write("🤖 Pregunta sobre cualquier aspecto de ROS2 Humble: instalación, tutoriales, conceptos, etc.")
+st.write("Pregunta sobre cualquier aspecto de ROS2 Humble: instalación, tutoriales, conceptos, etc.")
 
 llm=ChatGroq(groq_api_key=groq_api_key, model_name="llama3-8b-8192")
 
@@ -88,9 +97,9 @@ if prompt:
     st.write("### Respuesta:")
     st.write(response['answer'])
     
-    st.info(f"⏱️ Tiempo de respuesta: {response_time:.2f} segundos")
+    st.info(f"Tiempo de respuesta: {response_time:.2f} segundos")
 
-    with st.expander("📚 Documentos de referencia utilizados"):
+    with st.expander("Documentos de referencia utilizados"):
         for i, doc in enumerate(response["context"]):
             st.write(f"**Documento {i+1}:**")
             st.write(doc.page_content)

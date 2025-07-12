@@ -3,6 +3,7 @@ import os
 from langchain_groq import ChatGroq
 from langchain_community.document_loaders import WebBaseLoader
 from langchain_community.embeddings.llamacpp import LlamaCppEmbeddings
+from langchain_community.embeddings import HuggingFaceBgeEmbeddings
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain.chains.combine_documents import create_stuff_documents_chain
 from langchain_core.prompts import ChatPromptTemplate
@@ -17,51 +18,83 @@ load_dotenv()
 groq_api_key=os.environ['GROP_API_KEY']
 
 if "vectors" not in st.session_state:
-    model_path = "models/models--mixedbread-ai--mxbai-embed-large-v1/snapshots/db9d1fe0f31addb4978201b2bf3e577f3f8900d2/gguf/mxbai-embed-large-v1-f16.gguf"
-    if not os.path.exists(model_path):
-        print(f"Model path does not exist. Please check the path.")
-
-    st.session_state.embeddings = LlamaCppEmbeddings(
-        model_path=model_path,
+    st.session_state.embeddings = HuggingFaceBgeEmbeddings(
+        model_name="sentence-transformers/all-MiniLM-L6-v2",
+        model_kwargs={'device':'cuda'},
+        encode_kwargs={'normalize_embeddings':True}
     )
-    st.session_state.loader=WebBaseLoader("https://docs.ros.org/en/humble")
-    st.session_state.docs=st.session_state.loader.load()
-
+    
+    ros2_urls = [
+        "https://docs.ros.org/en/humble",
+        "https://docs.ros.org/en/humble/Installation.html",
+        "https://docs.ros.org/en/humble/Releases.html",
+        "https://docs.ros.org/en/humble/Tutorials.html",
+        "https://docs.ros.org/en/humble/How-To-Guides.html",
+        "https://docs.ros.org/en/humble/Concepts.html",
+        "https://docs.ros.org/en/humble/Contact.html",
+        "https://docs.ros.org/en/humble/The-ROS2-Project.html",
+        "https://docs.ros.org/en/humble/Package-Docs.html",
+        "https://docs.ros.org/en/humble/Related-Projects.html",
+        "https://docs.ros.org/en/humble/Glossary.html",
+        "https://docs.ros.org/en/humble/Citations.html"
+    ]
+    
+    all_docs = []
+    with st.spinner("Cargando documentación de ROS2 Humble..."):
+        for url in ros2_urls:
+            try:
+                loader = WebBaseLoader(url)
+                docs = loader.load()
+                all_docs.extend(docs)
+                st.write(f"✅ Cargado: {url}")
+            except Exception as e:
+                st.write(f"❌ Error cargando {url}: {str(e)}")
+    
+    st.session_state.docs = all_docs
     st.session_state.text_splitter=RecursiveCharacterTextSplitter(chunk_size=1000,chunk_overlap=200)
-    st.session_state.final_documents=st.session_state.text_splitter.split_documents(st.session_state.docs[:50])
+    st.session_state.final_documents=st.session_state.text_splitter.split_documents(st.session_state.docs)
     st.session_state.vectors=FAISS.from_documents(st.session_state.final_documents,st.session_state.embeddings)
 
-st.title("ChatGroq Demo")
-llm=ChatGroq(groq_api_key=groq_api_key,
-             model_name="llama3-8b-8192")
+st.title("Asistente Virtual ROS2 Humble")
+st.write("🤖 Pregunta sobre cualquier aspecto de ROS2 Humble: instalación, tutoriales, conceptos, etc.")
+
+llm=ChatGroq(groq_api_key=groq_api_key, model_name="llama3-8b-8192")
 
 prompt=ChatPromptTemplate.from_template(
 """
-Answer the questions based on the provided context only.
-Please provide the most accurate response based on the question
-<context>
-{context}
-<context>
-Questions:{input}
+Eres un experto en ROS2 Humble. Responde las preguntas basándote únicamente en el contexto proporcionado de la documentación oficial de ROS2 Humble.
+Proporciona respuestas precisas, detalladas y útiles. Si la información no está en el contexto, indica que no tienes esa información específica en la documentación cargada.
 
+Contexto de la documentación de ROS2 Humble:
+{context}
+
+Pregunta: {input}
+
+Respuesta:
 """
 )
 document_chain = create_stuff_documents_chain(llm, prompt)
 retriever = st.session_state.vectors.as_retriever()
 retrieval_chain = create_retrieval_chain(retriever, document_chain)
 
-prompt=st.text_input("Input you prompt here")
+prompt=st.text_input("Escribe tu pregunta sobre ROS2 Humble aquí:")
 
 if prompt:
-    start=time.process_time()
-    response=retrieval_chain.invoke({"input":prompt})
-    print("Response time :",time.process_time()-start)
+    with st.spinner("Buscando en la documentación..."):
+        start=time.process_time()
+        response=retrieval_chain.invoke({"input":prompt})
+        response_time = time.process_time()-start
+        
+    st.write("### Respuesta:")
     st.write(response['answer'])
+    
+    st.info(f"⏱️ Tiempo de respuesta: {response_time:.2f} segundos")
 
-    # With a streamlit expander
-    with st.expander("Document Similarity Search"):
-        # Find the relevant chunks
+    with st.expander("📚 Documentos de referencia utilizados"):
         for i, doc in enumerate(response["context"]):
+            st.write(f"**Documento {i+1}:**")
             st.write(doc.page_content)
-            st.write("--------------------------------")
+            if hasattr(doc, 'metadata') and 'source' in doc.metadata:
+                st.write(f"*Fuente: {doc.metadata['source']}*")
+            st.write("---")
     

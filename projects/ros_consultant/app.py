@@ -31,25 +31,87 @@ if "vectors" not in st.session_state:
         st.session_state.vectors = FAISS.load_local(folder_path=faiss_path, embeddings=st.session_state.embeddings, allow_dangerous_deserialization=True)
         st.success("FAISS cargado!")
     else:
-        ros2_urls = [
-            "https://docs.ros.org/en/humble",
-            "https://docs.ros.org/en/humble/Installation.html",
-            "https://docs.ros.org/en/humble/Releases.html",
-            "https://docs.ros.org/en/humble/Tutorials.html",
-            "https://docs.ros.org/en/humble/How-To-Guides.html",
-            "https://docs.ros.org/en/humble/Concepts.html",
-            "https://docs.ros.org/en/humble/Contact.html",
-            "https://docs.ros.org/en/humble/The-ROS2-Project.html",
-            "https://docs.ros.org/en/humble/Package-Docs.html",
-            "https://docs.ros.org/en/humble/Related-Projects.html",
-            "https://docs.ros.org/en/humble/Glossary.html",
-            "https://docs.ros.org/en/humble/Citations.html"
+        url_humble = "https://docs.ros.org/en/humble/"
+        info_urls = [
+            "index.html",
+            "Installation.html",
+            "Releases.html",
+            "Tutorials.html",
+            "Tutorials/Beginner-CLI-Tools/Configuring-ROS2-Environment.html",
+            "Tutorials/Beginner-CLI-Tools/Introducing-Turtlesim/Introducing-Turtlesim.html",
+            "Tutorials/Beginner-CLI-Tools/Understanding-ROS2-Nodes/Understanding-ROS2-Nodes.html",
+            "Tutorials/Beginner-CLI-Tools/Understanding-ROS2-Topics/Understanding-ROS2-Topics.html",
+            "Tutorials/Beginner-CLI-Tools/Understanding-ROS2-Services/Understanding-ROS2-Services.html",
+            "Tutorials/Beginner-CLI-Tools/Understanding-ROS2-Parameters/Understanding-ROS2-Parameters.html",
+            "Tutorials/Beginner-CLI-Tools/Understanding-ROS2-Actions/Understanding-ROS2-Actions.html",
+            "Tutorials/Beginner-CLI-Tools/Using-Rqt-Console/Using-Rqt-Console.html",
+            "Tutorials/Beginner-CLI-Tools/Launching-Multiple-Nodes/Launching-Multiple-Nodes.html",
+            "Tutorials/Beginner-CLI-Tools/Recording-And-Playing-Back-Data/Recording-And-Playing-Back-Data.html",
+            "Tutorials/Beginner-Client-Libraries/Colcon-Tutorial.html",
+            "Tutorials/Beginner-Client-Libraries/Creating-A-Workspace/Creating-A-Workspace.html",
+            "Tutorials/Beginner-Client-Libraries/Creating-Your-First-ROS2-Package.html",
+            "Tutorials/Beginner-Client-Libraries/Writing-A-Simple-Cpp-Publisher-And-Subscriber.html",
+            "Tutorials/Beginner-Client-Libraries/Writing-A-Simple-Py-Publisher-And-Subscriber.html",
+            "Tutorials/Beginner-Client-Libraries/Writing-A-Simple-Cpp-Service-And-Client.html",
+            "Tutorials/Beginner-Client-Libraries/Writing-A-Simple-Py-Service-And-Client.html",
+            "Tutorials/Beginner-Client-Libraries/Custom-ROS2-Interfaces.html",
+            "Tutorials/Beginner-Client-Libraries/Single-Package-Define-And-Use-Interface.html",
+            "Tutorials/Beginner-Client-Libraries/Using-Parameters-In-A-Class-CPP.html",
+            "Tutorials/Beginner-Client-Libraries/Using-Parameters-In-A-Class-Python.html",
+            "Tutorials/Beginner-Client-Libraries/Getting-Started-With-Ros2doctor.html",
+            "Tutorials/Beginner-Client-Libraries/Pluginlib.html",
+            "Tutorials/Intermediate/Rosdep.html",
+            "Tutorials/Intermediate/Creating-an-Action.html",
+            "Tutorials/Intermediate/Writing-an-Action-Server-Client/Cpp.html",
+            "Tutorials/Intermediate/Writing-an-Action-Server-Client/Py.html",
+            "Tutorials/Intermediate/Writing-a-Composable-Node.html",
+            "Tutorials/Intermediate/Composition.html",
+            "Tutorials/Intermediate/Using-Node-Interfaces-Template-Class.html",
+            "Tutorials/Intermediate/Monitoring-For-Parameter-Changes-CPP.html",
+            "Tutorials/Intermediate/Launch/Launch-Main.html",
+            "Tutorials/Intermediate/Tf2/Tf2-Main.html",
+            "Tutorials/Intermediate/Testing/Testing-Main.html",
+            "Tutorials/Intermediate/URDF/URDF-Main.html",
+            "Tutorials/Intermediate/RViz/RViz-Main.html",
+            "Tutorials/Advanced/Topic-Statistics-Tutorial/Topic-Statistics-Tutorial.html",
+            "Tutorials/Advanced/Discovery-Server/Discovery-Server.html",
+            "Tutorials/Advanced/Allocator-Template-Tutorial.html",
+            "Tutorials/Advanced/Ament-Lint-For-Clean-Code.html",
+            "Tutorials/Advanced/FastDDS-Configuration.html",
+            "Tutorials/Advanced/Recording-A-Bag-From-Your-Own-Node-CPP.html",
+            "Tutorials/Advanced/Recording-A-Bag-From-Your-Own-Node-Py.html",
+            "Tutorials/Advanced/ROS2-Tracing-Trace-and-Analyze.html",
+            "Tutorials/Advanced/Reading-From-A-Bag-File-CPP.html",
+            "Tutorials/Advanced/Simulators/Simulation-Main.html",
+            "Tutorials/Advanced/Security/Security-Main.html",
+            "Tutorials/Demos/Quality-of-Service.html",
+            "Tutorials/Demos/Managed-Nodes.html",
+            "Tutorials/Demos/Intra-Process-Communication.html",
+            "Tutorials/Demos/Rosbag-with-ROS1-Bridge.html",
+            "Tutorials/Demos/Real-Time-Programming.html",
+            "Tutorials/Demos/dummy-robot-demo.html",
+            "Tutorials/Demos/Logging-and-logger-configuration.html",
+            "Tutorials/Demos/Content-Filtering-Subscription.html",
+            "Tutorials/Demos/Wait-for-Acknowledgment.html",
+            "Tutorials/Miscellaneous/Deploying-ROS-2-on-IBM-Cloud.html",
+            "Tutorials/Miscellaneous/Eclipse-Oxygen-with-ROS-2-and-rviz2.html",
+            "Tutorials/Miscellaneous/Building-Realtime-rt_preempt-kernel-for-ROS-2.html",
+            "Tutorials/Miscellaneous/Building-ROS2-Package-with-eclipse-2021-06.html",
+            "How-To-Guides.html",
+            "Concepts.html",
+            "Contact.html",
+            "The-ROS2-Project.html",
+            "Package-Docs.html",
+            "Related-Projects.html",
+            "Glossary.html",
+            "Citations.html"
         ]
         
         all_docs = []
         with st.spinner("Cargando documentación de ROS2 Humble..."):
-            for url in ros2_urls:
+            for info_url in info_urls:
                 try:
+                    url = f"{url_humble}{info_url}"
                     loader = WebBaseLoader(url)
                     docs = loader.load()
                     all_docs.extend(docs)
@@ -83,7 +145,10 @@ Respuesta:
 """
 )
 document_chain = create_stuff_documents_chain(llm, prompt)
-retriever = st.session_state.vectors.as_retriever()
+retriever = st.session_state.vectors.as_retriever(
+                search_type="mmr",
+                search_kwargs={'k': 8, 'fetch_k': 50}
+            )
 retrieval_chain = create_retrieval_chain(retriever, document_chain)
 
 prompt=st.text_input("Escribe tu pregunta sobre ROS2 Humble aquí:")

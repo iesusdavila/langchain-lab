@@ -2,5 +2,6 @@
 .env.local
 .env.*.local
 __pycache__/*
+__pycache__
 models/*
 .vscode/*

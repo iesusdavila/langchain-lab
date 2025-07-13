@@ -1,3 +1,4 @@
+import time
 import requests
 import streamlit as st
 from datetime import datetime
@@ -10,6 +11,15 @@ def get_consult_response(input_text):
         return response.json()['output']['answer']
     except Exception as e:
         return f"Error al conectar con ROS2 Consultant: {str(e)}"
+
+def get_quiz_response(input_text):
+    try:
+        response = requests.post("http://localhost:8000/ros2_quiz/invoke",
+                               json={'input': input_text})
+        response.raise_for_status()
+        return response.json()['output']['answer'], response.json()['output']['context']
+    except Exception as e:
+        return f"Error al conectar con ROS2 Quiz: {str(e)}"
 
 def get_llm_response(input_text):
     try:
@@ -45,12 +55,10 @@ def main():
     with st.sidebar:
         chat_type = st.selectbox(
             "Tipo de Chat:",
-            ["Chat with ROS2 Consultant", "Chat with LLM"],
+            ["Chat with ROS2 Consultant", "ROS2 Quiz", "Chat with LLM"],
             key="chat_selector"
         )
-
-        is_llm_active = chat_type == "Chat with LLM"
-
+        
         st.divider()
 
         st.header("Options")
@@ -78,24 +86,23 @@ def main():
 
         st.subheader("Chat View")
         
-        if is_llm_active and st.session_state.ros2_messages:
+        if chat_type == "Chat with LLM" and st.session_state.ros2_messages:
             st.subheader("ROS2 Chat View")
             with st.expander("See latest ROS2 messages"):
                 for msg in st.session_state.ros2_messages[-3:]:
                     role_icon = "👤" if msg["role"] == "user" else "🤖"
                     st.text(f"{role_icon} {msg['content'][:50]}...")
         
-        elif not is_llm_active and st.session_state.llm_messages:
+        elif not chat_type == "Chat with LLM" and st.session_state.llm_messages:
             st.subheader("llm Chat View")
             with st.expander("See latest LLM messages"):
                 for msg in st.session_state.llm_messages[-3:]:
                     role_icon = "👤" if msg["role"] == "user" else "🤖"
                     st.text(f"{role_icon} {msg['content'][:50]}...")
-    
-    st.session_state.active_chat = "llm" if is_llm_active else "ros2"
-    
-    if is_llm_active:
+        
+    if chat_type == "Chat with LLM":
         st.title("Chat with LLM")
+        st.session_state.active_chat = "llm"
         
         llm_container = st.container()
         with llm_container:
@@ -122,8 +129,9 @@ def main():
             
             st.rerun()
     
-    else:
+    elif chat_type == "Chat with ROS2 Consultant":
         st.title("Chat with ROS2 Consultant")
+        st.session_state.active_chat = "ros2"
         
         ros2_container = st.container()
         with ros2_container:
@@ -149,6 +157,27 @@ def main():
             })
             
             st.rerun()
+    
+    elif chat_type == "ROS2 Quiz":
+        st.title("ROS2 Quiz")
+        st.session_state.active_chat = "quiz"
+
+        input_text=st.text_input("Write the topic you want to make a Quiz")
+
+        if input_text:
+            with st.spinner("Searching the documentation..."):
+                start=time.process_time()
+                response, context = get_quiz_response(input_text)
+                st.write(response)
+                response_time = time.process_time()-start
         
+            st.info(f"Response time: {response_time:.2f} seconds")
+
+            with st.expander("Reference documents used"):
+                for i, doc in enumerate(context):
+                    st.info(f"**Document {i+1}: {doc['metadata']['title']}**")
+                    st.info(doc["page_content"])
+                    st.write(f"*Source: {doc['metadata']['source']}*")
+                    
 if __name__ == "__main__":
     main()

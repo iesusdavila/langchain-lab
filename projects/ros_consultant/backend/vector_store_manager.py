@@ -6,7 +6,7 @@ from langchain_community.embeddings import HuggingFaceBgeEmbeddings
 from config import INFO_URLS, FAISS_PATH, URL_HUMBLE_DOC
 
 
-class DocumentManager:
+class RetrieverManager:
     def __init__(self, faiss_path: str = FAISS_PATH):
         self.faiss_path = faiss_path
         self.embeddings = HuggingFaceBgeEmbeddings(
@@ -16,7 +16,7 @@ class DocumentManager:
         )
     
     def load_documents(self):
-        """Carga documentos desde las URLs configuradas"""
+        """Load documents from configured URLs"""
         all_docs = []
         for info_url in INFO_URLS:
             try:
@@ -30,15 +30,15 @@ class DocumentManager:
         return all_docs
     
     def load_vectors_store(self):
-        """Carga o crea el vector store FAISS"""
+        """Load or create the FAISS vector store"""
         if os.path.exists(self.faiss_path):
-            print("Cargando FAISS desde disco...")
+            print("Loading FAISS from disk...")
             vectors = FAISS.load_local(
                 folder_path=self.faiss_path, 
                 embeddings=self.embeddings, 
                 allow_dangerous_deserialization=True
             )
-            print("FAISS cargado!")
+            print("FAISS loaded!")
         else:
             docs = self.load_documents()
             text_splitter = RecursiveCharacterTextSplitter(
@@ -48,6 +48,16 @@ class DocumentManager:
             final_documents = text_splitter.split_documents(docs)
             vectors = FAISS.from_documents(final_documents, self.embeddings)
             vectors.save_local(self.faiss_path)
-            print("FAISS creado y guardado!")
+            print("FAISS created and saved!")
         
         return vectors
+    
+    def get_retriever(self, search_type="mmr", k=8, fetch_k=50):
+        """Returns a configured document retriever"""
+        vectors = self.load_vectors_store()
+        retriever = vectors.as_retriever(
+            search_type=search_type,
+            search_kwargs={'k': k, 'fetch_k': fetch_k}
+        )
+
+        return retriever

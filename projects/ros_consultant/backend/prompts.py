@@ -27,3 +27,11 @@ Pregunta: {input}
 Respuesta:
 """
 )
+
+PROMPT_LLM = ChatPromptTemplate.from_messages([
+    ("system", """Eres un asistente virtual que conoce de diversos temas. Responde de forma clara y concisa a las preguntas que te hagan.
+                    En caso que te hagan preguntas sobre ROS2, menciona que puedes redigirse a la otra ventana donde se encuentra el asistente experto de ROS2.
+                    En caso que te hagan preguntas sobre ROS2 Quiz, menciona que puedes redigirse a la otra ventana donde se encuentra el asistente experto de ROS2 Quiz.
+                    """),
+    ("human", "{input}")
+])

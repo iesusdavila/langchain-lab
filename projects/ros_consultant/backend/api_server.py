@@ -4,9 +4,9 @@ from config import GROQ_API_KEY
 from langserve import add_routes
 from langchain_groq import ChatGroq
 from vector_store_manager import RetrieverManager
-from prompts import PROMPT_CONSULTANT, PROMPT_QUIZ
 from langchain_core.runnables import RunnableLambda
 from langchain.chains.retrieval import create_retrieval_chain
+from prompts import PROMPT_CONSULTANT, PROMPT_QUIZ, PROMPT_LLM
 from langchain.chains.combine_documents import create_stuff_documents_chain
 
 def simple_rag_wrapper(question: str):
@@ -14,6 +14,10 @@ def simple_rag_wrapper(question: str):
 
 def simple_rag_quiz_wrapper(question: str):
     return retrieval_chain_quiz.invoke({"input": question})
+
+def simple_llm_wrapper(input: str):
+    chain = PROMPT_LLM | llm
+    return chain.invoke({"input": input})
 
 app=FastAPI(
     title="Langchain Server",
@@ -34,10 +38,11 @@ retrieval_chain_quiz = create_retrieval_chain(retriever, document_chain_quiz)
 
 simple_rag_chain = RunnableLambda(simple_rag_wrapper)
 simple_rag_quiz_chain = RunnableLambda(simple_rag_quiz_wrapper)
+simple_llm_chain = RunnableLambda(simple_llm_wrapper)
 
 add_routes(
     app,
-    llm,
+    simple_llm_chain,
     path="/llm"
 )
 

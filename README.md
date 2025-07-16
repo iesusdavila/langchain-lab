@@ -1,1 +1,1 @@
-# langchain-lab
+# langchain-lab + projects

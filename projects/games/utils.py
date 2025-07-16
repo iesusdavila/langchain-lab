@@ -4,12 +4,13 @@ from typing import List, Dict, Any
 class GameDataProcessor:    
     @staticmethod
     def format_game_summary(game: Dict[str, Any]) -> str:
+        id = game['id']
         title = game['title']
         genre = game['genre']
         platform = game['platform']
         description = game['short_description']
                 
-        return f"• {title} ({genre})\n  Plataforma: {platform}\n  Descripción: {description}\n"
+        return f"• {title} (id: {id})\n Genero: {genre}\n  Plataforma: {platform}\n  Descripción: {description}\n"
     
     @staticmethod
     def format_detailed_game(game: Dict[str, Any]) -> str:
@@ -62,16 +63,6 @@ class GameDataProcessor:
                 filtered_games.append(game)
         
         return filtered_games
-    
-    @staticmethod
-    def get_popular_genres(games: List[Dict[str, Any]]) -> Dict[str, int]:
-        genre_count = {}
-        
-        for game in games:
-            genre = game.get('genre', 'Unknown')
-            genre_count[genre] = genre_count.get(genre, 0) + 1
-        
-        return dict(sorted(genre_count.items(), key=lambda x: x[1], reverse=True))
     
     @staticmethod
     def get_recent_games(games: List[Dict[str, Any]], limit: int = 10) -> List[Dict[str, Any]]:

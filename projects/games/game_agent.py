@@ -70,11 +70,12 @@ class GameRecommendationAgent:
             verbose=True,
             memory=None
         )
+        self.all_games = self.api.get_all_games()
     
     def _create_tools(self) -> List[Tool]:
         
         def search_all_games(query: str) -> str:
-            games = self.api.get_all_games()
+            games = self.all_games
             if isinstance(games, dict) and "error" in games:
                 return games["error"]
             
@@ -92,12 +93,8 @@ class GameRecommendationAgent:
             result = f"{search_info}{len(games)} juegos encontrados. Mostrando primeros {len(limited_games)}:\n\n"
             
             for game in limited_games:
-                result += self.processor.format_game_summary(game, RESPONSE_LIMITS["description_length"])
+                result += self.processor.format_game_summary(game)
                 result += "\n"
-            
-            genres = self.processor.get_popular_genres(games)
-            top_genres = list(genres.keys())[:5]
-            result += f"\n🏆 Géneros más populares: {', '.join(top_genres)}\n"
             
             return result
         
@@ -130,7 +127,7 @@ class GameRecommendationAgent:
             result = self.processor.create_recommendation_summary(games, f"plataforma '{platform}'")
             
             for game in games[:RESPONSE_LIMITS["games_by_platform"]]:
-                result += self.processor.format_game_summary(game, RESPONSE_LIMITS["description_length"])
+                result += self.processor.format_game_summary(game)
                 result += "\n"
             
             return result
@@ -139,7 +136,18 @@ class GameRecommendationAgent:
             try:
                 game_id_int = int(game_id)
             except ValueError:
-                return "Error: El ID del juego debe ser un número"
+                games = self.all_games
+                if isinstance(games, dict) and "error" in games:
+                    return games["error"]
+                
+                if game_id and game_id.strip():
+                    filtered_games = self.processor.filter_games_by_keyword(games, game_id)
+                    if filtered_games:
+                        game_id_int = filtered_games[0]['id']
+                    else:
+                        return "Error: No se encontraron juegos con ese ID o nombre."
+                else:
+                    return "Error: El ID del juego esta vacío."
             
             game = self.api.get_game_by_id(game_id_int)
             if isinstance(game, dict) and "error" in game:
@@ -155,7 +163,7 @@ class GameRecommendationAgent:
             result = self.processor.create_recommendation_summary(games, f"ordenamiento por '{sort_criteria}'")
             
             for game in games[:RESPONSE_LIMITS["sorted_games"]]:
-                result += self.processor.format_game_summary(game, RESPONSE_LIMITS["description_length"])
+                result += self.processor.format_game_summary(game)
                 result += f"  📅 Fecha: {game.get('release_date', 'N/A')}\n\n"
             
             return result
@@ -178,7 +186,7 @@ class GameRecommendationAgent:
             ),
             Tool(
                 name="obtener_detalles_juego",
-                description="Obtiene detalles completos de un juego específico usando su ID numérico",
+                description="Obtiene detalles, información o caracteristicas de un juego específico usando su ID numérico",
                 func=get_game_details
             ),
             Tool(

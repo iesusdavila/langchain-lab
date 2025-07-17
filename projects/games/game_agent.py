@@ -7,7 +7,7 @@ from typing import List, Dict, Any
 from langchain_groq import ChatGroq
 from utils import GameDataProcessor, QueryProcessor
 from langchain.agents import create_react_agent, AgentExecutor
-from config import API_CONFIG, LLM_CONFIG, GAME_CATEGORIES, GAME_PLATFORMS, SORT_CRITERIA, RESPONSE_LIMITS, SYSTEM_MESSAGES
+from config import API_CONFIG, LLM_CONFIG, GAME_CATEGORIES, GAME_PLATFORMS, SORT_CRITERIA, RESPONSE_LIMITS
 
 load_dotenv()
 

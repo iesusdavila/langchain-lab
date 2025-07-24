@@ -17,3 +17,4 @@ langchainhub
 groq
 langchain-groq
 google-search-results
+langgraph-checkpoint-sqlite
